@@ -1,7 +1,6 @@
 import { Button, Center, Stack } from "@chakra-ui/react";
 import Login from "./login";
 import Signup from "./signup";
-import Link from "next/link";
 import { useState } from "react";
 
 

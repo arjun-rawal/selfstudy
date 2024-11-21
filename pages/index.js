@@ -1,12 +1,8 @@
 import Head from "next/head";
-import Image from "next/image";
-import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import NewTopic from "./newTopic.js";
-import Login from "./login.js";
 import { Button, Heading } from "@chakra-ui/react";
 import { useState } from "react";
-import Signup from "./signup.js";
 import AuthScreen from "./authScreen.js";
 import authMiddleware from "./api/checkAuth.js";
 
@@ -46,7 +42,19 @@ export default function Home({ user }) {
   }
   function Page() {
     if (auth) {
-      return <NewTopic />;
+      return <><NewTopic username = {user}/>;<Button
+      position={"absolute"}
+      left={"90vw"}
+      top={"5vh"}
+      transform={"translate(0%,0%)"}
+
+      onClick={() => {
+        handleLogout();
+      }}
+    >
+      Log out
+    </Button>
+    </>
     }
     return <AuthScreen />;
   }
@@ -70,18 +78,7 @@ export default function Home({ user }) {
           SelfStudy
         </Heading>
 
-        <Button
-          position={"absolute"}
-          left={"90vw"}
-          top={"5vh"}
-          transform={"translate(0%,0%)"}
-
-          onClick={() => {
-            handleLogout();
-          }}
-        >
-          Log out
-        </Button>
+        
         <Page />
       </main>
     </>
