@@ -5,27 +5,87 @@ import { Button, Heading } from "@chakra-ui/react";
 import { useState } from "react";
 import AuthScreen from "./authScreen.js";
 import authMiddleware from "./api/checkAuth.js";
+import { useEffect } from "react";
+import cookie from 'cookie';
+import { parse } from 'cookie';
+
+
 
 export async function getServerSideProps(context) {
   const { req } = context;
 
   try {
-    const user = await authMiddleware(req);
+    // Parse cookies from the request headers
+    const cookies = req.headers.cookie ? parse(req.headers.cookie) : {};
+    const sessionToken = cookies.sessionToken;
+
+    console.log("Session token from cookies:", sessionToken);
+
+    if (!sessionToken) {
+      console.log('No session token found in cookies');
+      return { props: { user: null } };
+    }
+
+    // Authenticate the session token
+    const user = await authMiddleware({ cookies });
+
+    console.log("User from authMiddleware:", user);
 
     return {
-      props: { user: user || null },
+      props: { user: user || null }, // Always return props
     };
   } catch (error) {
     console.error("Authentication error:", error.message);
-    return {};
+    return {
+      props: { user: null }, // Ensure props is always defined
+    };
   }
 }
 
-export default function Home({ user }) {
-  console.log("HELLO");
-  console.log(user);
-  const [auth, setAuth] = useState(!!user); //!! makes it false if its null
 
+async function getPlan(username) {
+  if (!username) {
+    console.error("No username provided");
+    return null;
+  }
+
+  // Make a POST request to the checkPlan API
+  const res = await fetch('/api/checkPlan', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username }),
+  });
+
+  if (!res.ok) {
+    console.error('Failed to fetch plan:', await res.text());
+    return null;
+  }
+
+  const data = await res.json();
+  return data;
+}
+export default function Home({ user }) {
+
+  const [topic, setTopic] = useState("");
+
+  useEffect(() => {
+    async function fetchData() {
+      if (user) {
+        const result = await getPlan(user.username);
+        
+        if (result) {
+          setTopic(result.result.topic || "No topic found");
+        }
+      }
+    }
+    fetchData();
+  }, [user]);
+
+
+  console.log(user);
+  const [auth, setAuth] = useState(!!user); //!! makes it false if its null 
   async function handleLogout() {
     try {
       const res = await fetch("/api/logout", {
@@ -40,24 +100,39 @@ export default function Home({ user }) {
       console.error("Error logging out:", error);
     }
   }
-  function Page() {
+  const Page = ()=> {
     if (auth) {
-      return <><NewTopic username = {user}/>;<Button
-      position={"absolute"}
-      left={"90vw"}
-      top={"5vh"}
-      transform={"translate(0%,0%)"}
-
-      onClick={() => {
-        handleLogout();
-      }}
-    >
-      Log out
-    </Button>
-    </>
+      return (
+        <>
+          <NewTopic username={user} />;
+          <Button
+            position={"absolute"}
+            left={"90vw"}
+            top={"5vh"}
+            transform={"translate(0%,0%)"}
+            onClick={() => {
+              handleLogout();
+            }}
+          >
+            Log out
+          </Button>
+        </>
+      );
     }
     return <AuthScreen />;
   }
+
+  const DisplayTopic =(t)=>{
+    let message = t.message;
+    return(
+      <>
+       {message}
+      </>
+    )
+    
+  }
+
+
   return (
     <>
       <Head>
@@ -77,10 +152,10 @@ export default function Home({ user }) {
         >
           SelfStudy
         </Heading>
-
-        
+        <p>{topic}</p>
         <Page />
       </main>
     </>
   );
+  
 }
