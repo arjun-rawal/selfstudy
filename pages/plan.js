@@ -1,8 +1,10 @@
+import { env } from "@/next.config";
 import { createServerSearchParamsForServerPage } from "next/dist/server/request/search-params";
 import OpenAI from "openai";
 import { useState, useEffect } from "react";
 
 const openai = new OpenAI({ 
+    apiKey: env.OPENAI_KEY, 
     dangerouslyAllowBrowser: true  
 });
 

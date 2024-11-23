@@ -7,7 +7,7 @@ import { useState } from "react";
 
 
 
-export default function authScreen() {
+export default function AuthScreen() {
     const [account,setAccount] = useState(true);
 
     const Card=()=>{
@@ -24,7 +24,7 @@ export default function authScreen() {
             return(
                 <Stack>
                     <Login/>
-                    <Button onClick={()=>{setAccount(false)}}> Don't have an account? Signup.</Button>
+                    <Button onClick={()=>{setAccount(false)}}> Don&apos;t have an account? Signup.</Button>
                 </Stack>
             )
         }
