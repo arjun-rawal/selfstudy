@@ -75,7 +75,7 @@ export default function Home({ user }) {
       if (user) {
         const result = await getPlan(user.username);
         
-        if (result) {
+        if (result.planExists) {
           setTopic(result.result.topic || "No topic found");
         }
       }
