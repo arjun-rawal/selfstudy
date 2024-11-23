@@ -20,8 +20,8 @@ export default function NewTopic(props) {
 
   };
   const [topic, setTopic] = useState("");
-  const username = props.username.username;
-
+  const username = props.username?.username || ""; 
+  
   async function handleNew() {
     const res = await fetch("/api/submitPlan", {
       method: "POST",
