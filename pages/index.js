@@ -8,6 +8,7 @@ import authMiddleware from "./api/checkAuth.js";
 import { useEffect } from "react";
 import cookie from 'cookie';
 import { parse } from 'cookie';
+import FloatingCards from "./FloatingCards.js";
 
 
 
@@ -122,16 +123,6 @@ export default function Home({ user }) {
     return <AuthScreen />;
   }
 
-  const DisplayTopic =(t)=>{
-    let message = t.message;
-    return(
-      <>
-       {message}
-      </>
-    )
-    
-  }
-
 
   return (
     <>
@@ -156,6 +147,7 @@ export default function Home({ user }) {
         </Heading>
         <p>{topic}</p>
         <Page />
+        <FloatingCards/>
       </main>
     </>
   );
