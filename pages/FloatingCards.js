@@ -1,9 +1,10 @@
 import { Box, Text } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 const FloatingCards = () => {
   const [cards, setCards] = useState([]); // Fetched cards
-  const [displayedCards, setDisplayedCards] = useState([]); // Cards to display on screen
+  const [isLoading, setIsLoading] = useState(true); // Track loading state
 
   useEffect(() => {
     async function fetchCards() {
@@ -22,89 +23,102 @@ const FloatingCards = () => {
 
         const data = await res.json();
         setCards(data.data || []); // Set the fetched cards
+        setIsLoading(false); // Set loading to false after data is fetched
       } catch (error) {
         console.error("Error fetching cards:", error);
+        setIsLoading(false); // Set loading to false even if there's an error
       }
     }
 
     fetchCards();
   }, []);
 
+  return (
+    <>
+      {!isLoading && cards.length > 0 ? (
+        <DisplayCards cards={cards} />
+      ) : (
+        <></>
+        )}
+    </>
+  );
+};
+
+const DisplayCards = (props) => {
+  const [activeCards, setActiveCards] = useState([]);
+
+  const cards = props.cards;
+
+  const spawnCard = () => {
+    
+    const randomCard = cards[Math.floor(Math.random() * cards.length)];
+
+    const newCard = {
+      ...randomCard,
+      spawnId: Date.now(), 
+      top: Math.random() * 70 + 15, 
+      side: Math.random() > 0.5 ? "left" : "right", 
+    };
+
+    setActiveCards((prev) => [...prev, newCard]);
+
+    setTimeout(() => {
+      setActiveCards((prev) =>
+        prev.filter((item) => item.spawnId !== newCard.spawnId)
+      );
+    }, 5000); 
+  };
+
   useEffect(() => {
-    if (cards.length === 0) return;
-
     const interval = setInterval(() => {
-      // Pick a random card and add it to displayedCards
-      const randomCard = cards[Math.floor(Math.random() * cards.length)];
+      spawnCard();
+    }, Math.random() * 1500 + 1500); 
 
-      // Precompute position and side (left/right), and assign a unique ID
-      const newCard = {
-        ...randomCard,
-        id: Date.now(),
-        top: Math.random() * 50 + 20, // Precompute Y position (20%-70%)
-        side: Math.random() < 0.5 ? "left" : "right", // Randomly decide side
-      };
-
-      setDisplayedCards((prev) => [...prev, newCard]);
-
-      // Automatically remove the card after 5 seconds
-      setTimeout(() => {
-        setDisplayedCards((prev) =>
-          prev.filter((card) => card.id !== newCard.id)
-        );
-      }, 5000);
-    }, 2000); // New card every 2 seconds
-
-    return () => clearInterval(interval); // Cleanup interval
+    return () => clearInterval(interval); 
   }, [cards]);
 
   return (
     <Box
       position="absolute"
-      width="100%"
-      height="100%"
       top="0"
-      pointerEvents="none"
+      width="100%"
+      height="100vh"
       overflow="hidden"
-      zIndex="10"
     >
-      {displayedCards.map((card) => (
-        <Box
-          key={card.id}
-          position="absolute"
-          width="300px"
-          p={4}
-          bg="white"
-          boxShadow="lg"
-          borderRadius="md"
-          animation={`floatUp 5s ease-in forwards`}
-          top={`${card.top}%`} // Use precomputed top position
-          left={card.side === "left" ? "10%" : "auto"}
-          right={card.side === "right" ? "10%" : "auto"}
+      {activeCards.map((card) => (
+        <motion.div
+          key={card.spawnId}
+          style={{
+            position: "absolute",
+            top: `${card.top}%`,
+            left: card.side === "left" ? "10%" : "auto",
+            right: card.side === "right" ? "10%" : "auto",
+            width: "15vw",
+          }}
+          initial={{
+            opacity: 0,
+            translateY: 20, // Start slightly below
+          }}
+          animate={{
+            opacity: [0, 1, 1, 0], // Fade in, stay visible, fade out
+            translateY: -100, // Move upward
+          }}
+          transition={{
+            duration: 5, // Total animation duration
+            ease: "easeInOut",
+          }}
         >
-          <Text>{card.text}</Text>
-        </Box>
+          <Box
+            bg="white"
+            p={4}
+            boxShadow="lg"
+            borderRadius="md"
+            textAlign="center"
+          >
+            <Text>{card.text}</Text>
+          </Box>
+        </motion.div>
       ))}
-      <style>
-        {`
-          @keyframes floatUp {
-            0% {
-              transform: translateY(20px);
-              opacity: 0;
-            }
-            20% {
-              opacity: 1;
-            }
-            80% {
-              opacity: 1;
-            }
-            100% {
-              transform: translateY(-100px);
-              opacity: 0;
-            }
-          }
-        `}
-      </style>
     </Box>
   );
 };
