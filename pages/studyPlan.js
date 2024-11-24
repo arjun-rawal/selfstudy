@@ -1,12 +1,12 @@
 
 
-class Day{
-    #video
+// class Day{
+//     #video
     
-    constructor (){
+//     constructor (){
 
-    }
-}
+//     }
+// }
 
 
 
@@ -15,6 +15,7 @@ export default function StudyPlan(){
 
     return(
         <>
+        
         </>
     )
 }

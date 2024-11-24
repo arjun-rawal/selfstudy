@@ -1,5 +1,3 @@
-import { env } from "@/next.config";
-import { createServerSearchParamsForServerPage } from "next/dist/server/request/search-params";
 import OpenAI from "openai";
 import { useState, useEffect } from "react";
 

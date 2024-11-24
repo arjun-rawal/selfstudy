@@ -71,6 +71,7 @@ export default function Home({ user }) {
 
   const [topic, setTopic] = useState("");
 
+  const [plan, setPlan] = useState();
   useEffect(() => {
     async function fetchData() {
       if (user) {
@@ -78,6 +79,7 @@ export default function Home({ user }) {
         
         if (result.planExists) {
           setTopic(result.result.topic || "No topic found");
+          setPlan(result.result)
         }
       }
     }
