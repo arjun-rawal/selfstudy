@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
             if (sessionToken) {
                 // Delete the session from the database
-                const result = await sessionsCollection.deleteOne({ token: sessionToken });
+                const result = await sessionsCollection.deleteMany({});
                 
                 if (result.deletedCount === 0) {
                     console.warn('Session token not found in the database.');

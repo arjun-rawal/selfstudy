@@ -22,10 +22,9 @@ export default async function handler(req, res) {
       }
 
       
-      const hashedPassword = password; 
 
       // Insert the new user into the database
-      const result = await usersCollection.insertOne({ username, password: hashedPassword });
+      const result = await usersCollection.insertOne({ username, password });
 
       // Respond with success
       res.status(201).json({ success: true, message: 'User registered successfully', userId: result.insertedId });

@@ -11,7 +11,6 @@ import { parse } from 'cookie';
 import FloatingCards from "./FloatingCards.js";
 
 
-
 export async function getServerSideProps(context) {
   const { req } = context;
 

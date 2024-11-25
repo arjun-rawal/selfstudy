@@ -18,9 +18,20 @@ export default async function handler(req, res) {
       return;
     }
 
+    let numDays = 0;
+    if (time === "Days"){
+      numDays = number;
+    }
+    else if (time === "Weeks"){
+      numDays = number*7;
+    }
+    else{
+      numDays = number*30;
+    }
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      max_tokens: 1000, 
+      max_tokens: 5000, 
       messages: [
         {
           role: "system",
@@ -30,27 +41,22 @@ export default async function handler(req, res) {
         {
           role: "user",
           content: `
-    You are tasked with creating a detailed, day-by-day study schedule based on three inputs:
+    You are tasked with creating a detailed, day-by-day study schedule based on two inputs:
     1. Topic: A subject such as 'AP Calculus.'
-    2. Number of sessions: Between 1 and 5 (used to create milestones or checkpoints).
-    3. Time: A duration in days, weeks, or months (e.g., '5 weeks').
+    2. Number of Days
     
-    Requirements:
-    1. Divide the time evenly based on the duration. For example, 5 weeks = 35 days.
-    2. Provide numbered output for each day, where each day includes:
+    Provide numbered output for each day, where each day includes:
        - A **specific video topic** to study (e.g., "How to compute limits with L'Hôpital's Rule").
        - A **specific assignment** to practice (e.g., "Worksheet on computing limits using L'Hôpital's Rule").
-    3. Avoid vague topics like "summary of topics" or "general review."
+    3. Avoid vague topics like "summary of topics" or "general review." I will be webscraping these topics for content.
     4. The output format should look like this:
     
     1. video: {specific video topic} assignment: {specific assignment topic}
-    2. video: {specific video topic} assignment: {specific assignment topic}
-    3. video: {specific video topic} assignment: {specific assignment topic}
-    
+    2. video: {specific video topic} assignment: {specific assignment topic}    
     Now, create a day-by-day study schedule for the following:
     Topic: {${topic}}
-    Number of sessions: {${number}}
-    Time: {${time}}
+    Number of days: {${numDays}}
+    Do not cut off in the middle, provide the entire schedule
           `,
         },
       ],
@@ -79,8 +85,7 @@ export default async function handler(req, res) {
       const result = await usersCollection.insertOne({
         username,
         topic,
-        number,
-        time,
+        numDays,
         outputText,
         totalCost
       });

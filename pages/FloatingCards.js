@@ -52,7 +52,9 @@ const DisplayCards = (props) => {
   const spawnCard = () => {
     
     const randomCard = cards[Math.floor(Math.random() * cards.length)];
-
+    if (randomCard.text.split("in")[randomCard.text.split("in").length-1].indexOf(1)>-1){
+      randomCard.text = randomCard.text.substring(0,randomCard.text.length-1);
+    }
     const newCard = {
       ...randomCard,
       spawnId: Date.now(), 

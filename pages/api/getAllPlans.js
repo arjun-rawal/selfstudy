@@ -3,14 +3,12 @@ import clientPromise from '../../lib/mongodb';
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const client = await clientPromise; // Get MongoDB client
-      const db = client.db('user_database'); // Replace with your database name
-      const collection = db.collection('plans'); // Replace with your collection name
+      const client = await clientPromise; 
+      const db = client.db('user_database'); 
+      const collection = db.collection('examplePlans'); 
 
-      // Fetch all documents in the collection
       const cards = await collection.find({}).toArray();
 
-      // Format data as "{topic} in {number} {time}"
       const formattedCards = cards.map(card => ({
         id: card._id,
         text: `${card.topic} in ${card.number} ${card.time}`,

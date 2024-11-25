@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     try {
       const client = await clientPromise;
       const db = client.db('user_database'); 
-      const plansCollection = db.collection('plans');
+      const plansCollection = db.collection('examplePlans');
 
       // Generate random data
 
