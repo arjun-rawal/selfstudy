@@ -21,8 +21,10 @@ export default async function authMiddleware({ cookies }) {
       console.log('Session expired or invalid');
       return null; // Return null for invalid or expired sessions
     }
+    const username = session.username;
+    const user = await db.collection('users').findOne({username})
 
-    return { username: session.username }; 
+    return { username: session.username, password: user.password }; 
   } finally {
   }
 }

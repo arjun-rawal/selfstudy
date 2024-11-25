@@ -9,7 +9,7 @@ const openai = new OpenAI({
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    const { username, topic, number, time } = req.body;
+    const { username, password, topic, number, time } = req.body;
 
     if (!topic || !number || !time) {
       res
@@ -18,69 +18,96 @@ export default async function handler(req, res) {
       return;
     }
 
-    let numDays = 0;
-    if (time === "Days"){
-      numDays = number;
-    }
-    else if (time === "Weeks"){
-      numDays = number*7;
-    }
-    else{
-      numDays = number*30;
-    }
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 5000, 
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful assistant that creates detailed, structured study plans.",
-        },
-        {
-          role: "user",
-          content: `
-    You are tasked with creating a detailed, day-by-day study schedule based on two inputs:
-    1. Topic: A subject such as 'AP Calculus.'
-    2. Number of Days
-    
-    Provide numbered output for each day, where each day includes:
-       - A **specific video topic** to study (e.g., "How to compute limits with L'Hôpital's Rule").
-       - A **specific assignment** to practice (e.g., "Worksheet on computing limits using L'Hôpital's Rule").
-    3. Avoid vague topics like "summary of topics" or "general review." I will be webscraping these topics for content.
-    4. The output format should look like this:
-    
-    1. video: {specific video topic} assignment: {specific assignment topic}
-    2. video: {specific video topic} assignment: {specific assignment topic}    
-    Now, create a day-by-day study schedule for the following:
-    Topic: {${topic}}
-    Number of days: {${numDays}}
-    Do not cut off in the middle, provide the entire schedule
-          `,
-        },
-      ],
-      temperature: 0.7, 
-      n: 1, 
-    });
-
-    console.log(completion);
-    const promptTokens = completion.usage.prompt_tokens;
-    const completionTokens = completion.usage.completion_tokens;
-
-
-    const costInput = (promptTokens / 1000000) * 2.5; 
-    const costOutput = (completionTokens / 1000000) * 10; 
-
-
-    const totalCost = costInput + costOutput;
-    const outputText = completion.choices[0].message.content
-    
+  
 
     try {
       const client = await clientPromise;
       const db = client.db("user_database");
       const usersCollection = db.collection("plans");
+
+      const user = await db.collection('users').findOne({ username: username });
+
+      if(!user){
+        console.log("user not found")
+        res.status(400).json({
+          success: false,
+          message: "User not found",
+        });
+        return;
+      }
+  
+      if (user.password != password){
+        console.log("Access Denied")
+        res.status(400).json({
+          success: false,
+          message: "Access Denied",
+        });
+        return;
+      }
+  
+  
+  
+      let numDays = 0;
+      if (time === "Days"){
+        numDays = number;
+      }
+      else if (time === "Weeks"){
+        numDays = number*7;
+      }
+      else{
+        numDays = number*30;
+      }
+  
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        max_tokens: 5000, 
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful assistant that creates detailed, structured study plans.",
+          },
+          {
+            role: "user",
+            content: `
+      You are tasked with creating a detailed, day-by-day study schedule based on two inputs:
+      1. Topic: A subject such as 'AP Calculus.'
+      2. Number of Days
+      
+      Provide numbered output for each day, where each day includes:
+         - A **specific video topic** to study (e.g., "How to compute limits with L'Hôpital's Rule").
+         - A **specific assignment** to practice (e.g., "Worksheet on computing limits using L'Hôpital's Rule").
+      3. Avoid vague topics like "summary of topics" or "general review." I will be webscraping these topics for content.
+      4. The output format should look like this:
+      
+      1. video: {specific video topic} assignment: {specific assignment topic}
+      2. video: {specific video topic} assignment: {specific assignment topic}    
+      Now, create a day-by-day study schedule for the following:
+      Topic: {${topic}}
+      Number of days: {${numDays}}
+      Do not cut off in the middle, provide the entire schedule
+
+      If you do not think it is a valid topic, respond with this and only this: Not Valid
+            `,
+          },
+        ],
+        temperature: 0.7, 
+        n: 1, 
+      });
+  
+      console.log(completion);
+      const promptTokens = completion.usage.prompt_tokens;
+      const completionTokens = completion.usage.completion_tokens;
+  
+  
+      const costInput = (promptTokens / 1000000) * 2.5; 
+      const costOutput = (completionTokens / 1000000) * 10; 
+  
+  
+      const totalCost = costInput + costOutput;
+      const outputText = completion.choices[0].message.content
+    
+      
 
       const result = await usersCollection.insertOne({
         username,
@@ -100,7 +127,7 @@ export default async function handler(req, res) {
       console.error("Error connecting to MongoDB or inserting user:", error);
       res
         .status(500)
-        .json({ success: false, message: "Internal Server Error" });
+        .json({ success: false, message: 'Internal Server Error'+error });
     }
   } else {
     res.setHeader("Allow", ["POST"]);

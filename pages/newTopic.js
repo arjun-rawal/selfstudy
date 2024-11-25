@@ -21,14 +21,14 @@ export default function NewTopic(props) {
   };
   const [topic, setTopic] = useState("");
   const username = props.username?.username || ""; 
-  
+  const password = props.username?.password || "";
   async function handleNew() {
     const res = await fetch("/api/submitPlan", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username, topic, number: numVal, time: timeVal }),
+      body: JSON.stringify({ username, password, topic, number: numVal, time: timeVal }),
     });
 
     const data = await res.json();
