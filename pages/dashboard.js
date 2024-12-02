@@ -3,6 +3,7 @@ import NewTopic from "./newTopic";
 import { useEffect, useState } from "react";
 
 export default function Dashboard(props) {
+
   console.log(props.user);
   useEffect(() => {
     if (props.user === undefined) {
@@ -15,6 +16,8 @@ export default function Dashboard(props) {
   }
 
   const user = props.user;
+  
+  const [plans, setPlans] = useState([]);
 
   async function getPlan(username) {
     if (!username) {
@@ -38,7 +41,6 @@ export default function Dashboard(props) {
     const data = await res.json();
     return data;
   }
-  const [plans, setPlans] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
