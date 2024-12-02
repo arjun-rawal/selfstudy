@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Center,
   Input,
@@ -11,6 +12,8 @@ import {
 } from "@chakra-ui/react";
 import { StepperInput } from "@/components/ui/stepper-input";
 import { useState } from "react";
+import VideoAd from "@/myComponents/videoAd";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function NewTopic(props) {
   const [timeVal, setTimeVal] = useState("Months");
@@ -19,8 +22,9 @@ export default function NewTopic(props) {
   const [showAd, setShowAd] = useState(false);
   const username = props.username?.username || "";
   const password = props.username?.password || "";
-  const vastUrl = "https://s.magsrv.com/splash.php?idzone=5486412"; // Replace with your VAST URL
-
+  const vastUrl = "https://basil79.github.io/vast-sample-tags/pg/vast.xml";
+  const [validCaptcha, setValidCaptcha] = useState(false)
+  const [showErrorMessage, setErrorMessage] = useState(false)
   const handleNumChange = (newVal) => {
     setNumVal(newVal.valueAsNumber);
   };
@@ -31,7 +35,13 @@ export default function NewTopic(props) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username, password, topic, number: numVal, time: timeVal }),
+      body: JSON.stringify({
+        username,
+        password,
+        topic,
+        number: numVal,
+        time: timeVal,
+      }),
     });
 
     const data = await res.json();
@@ -44,10 +54,16 @@ export default function NewTopic(props) {
   }
 
   const handleGenerate = () => {
-    setShowAd(true); // Display the video ad
+    if (validCaptcha){
+      setShowAd(true); // Display the video ad
+    }
+    else{
+      setErrorMessage(true);
+    }
   };
 
   const handleAdComplete = () => {
+    console.log("AD DONE");
     setShowAd(false); // Hide the ad
     handleNew(); // Run the API call after the ad is complete
   };
@@ -55,10 +71,11 @@ export default function NewTopic(props) {
   return (
     <Center height={"95vh"}>
       <Stack gap="2vh" width="auto">
+   
+
         {showAd ? (
-          <div>
-            <Text>Watch this ad to proceed:</Text>
-            <video
+          <>
+            {/* <video
               id="video-player"
               controls
               width="600"
@@ -67,8 +84,27 @@ export default function NewTopic(props) {
             >
               <source src={vastUrl} type="application/xml+vast" />
               Your browser does not support the video tag.
-            </video>
-          </div>
+            </video> */}
+                    <Box
+          position="fixed"
+          top="0"
+          left="0"
+          width="100%"
+          height="100%"
+          bg="rgba(0, 0, 0, 0.7)"
+          zIndex={10}
+        />
+            <Box zIndex={15}>
+            <Text alignSelf={"center"}>Watch this ad to proceed:</Text>
+            <VideoAd
+              vastUrl={"https://basil79.github.io/vast-sample-tags/pg/vast.xml"}
+              handleComplete={handleAdComplete}
+            />
+            </Box>
+            <Box/>
+            
+            {/* <iframe width="560" height="315" src="https://www.youtube.com/embed/qZS50KXjAX0?si=D5r2krQtDbp7MXq5" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> */}
+          </>
         ) : (
           <>
             <Input
@@ -83,7 +119,12 @@ export default function NewTopic(props) {
               alignItems={"center"}
             >
               <Text whiteSpace={"no-wrap"}> I have...</Text>
-              <StepperInput value={numVal} min={1} max={5} onValueChange={handleNumChange} />
+              <StepperInput
+                value={numVal}
+                min={1}
+                max={5}
+                onValueChange={handleNumChange}
+              />
               <MenuRoot positioning={{ placement: "bottom-end" }}>
                 <MenuTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -118,6 +159,15 @@ export default function NewTopic(props) {
                 </MenuContent>
               </MenuRoot>
             </Stack>
+            <ReCAPTCHA
+              sitekey="6LeFe5AqAAAAAAFSMOGrpOD_MZvEa06Tup5YYEzh"
+              onChange={(value)=>{setValidCaptcha((value.length>0)); console.log("CAPTCHA: ",value.length>0)}}
+            />
+            {showErrorMessage ? (
+              <Text> Captcha Required! </Text>
+            ) : (<></>)
+
+            }
             <Button onClick={handleGenerate}>Generate</Button>
           </>
         )}
