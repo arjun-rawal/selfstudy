@@ -1,4 +1,4 @@
-import clientPromise from '../../lib/mongodb';
+import clientPromise from '../../../lib/mongodb';
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
@@ -12,7 +12,6 @@ export default async function handler(req, res) {
             const sessionToken = req.cookies.sessionToken;
 
             if (sessionToken) {
-                // Delete the session from the database
                 const result = await sessionsCollection.deleteMany({});
                 
                 if (result.deletedCount === 0) {

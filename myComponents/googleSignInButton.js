@@ -2,14 +2,13 @@ import React, { useEffect } from "react";
 
 const GoogleSignInButton = () => {
   useEffect(() => {
-    // Dynamically load the Google script
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script); // Cleanup the script on unmount
+      document.body.removeChild(script); 
     };
   }, []);
  console.log(process.env.GOOGLE_CLIENT_ID)

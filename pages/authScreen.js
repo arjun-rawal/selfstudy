@@ -1,8 +1,8 @@
 import { Button, Center, HStack, Stack, Text, VStack } from "@chakra-ui/react";
-import Login from "./login";
-import Signup from "./signup";
+import Login from "../myComponents/login";
+import Signup from "../myComponents/signup";
 import { useState } from "react";
-import GoogleSignInButton from "./googleSignInButton"
+import GoogleSignInButton from "../myComponents/googleSignInButton"
 export default function AuthScreen() {
   const [account, setAccount] = useState(true);
 

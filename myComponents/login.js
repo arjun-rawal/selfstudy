@@ -1,6 +1,7 @@
 import { Button, Card, Center, Input, Stack } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { useState } from "react";
+
 export default function Login() {
     const [username,setUsername] = useState("");
     const [password,setPassword] = useState("");
@@ -9,7 +10,7 @@ export default function Login() {
     const handleSubmit = async () => {
       
         console.log(username,password);
-        const res = await fetch('/api/loginAuth', {
+        const res = await fetch('/api/auth/loginAuth', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -29,6 +30,7 @@ export default function Login() {
 
   return (
     <>
+  
       <Card.Root maxW="sm">
         <Card.Header>
           <Card.Description>

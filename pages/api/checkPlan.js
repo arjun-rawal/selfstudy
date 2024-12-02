@@ -17,7 +17,9 @@ export default async function handler(req, res) {
       const plansCollection = db.collection('plans'); // Collection storing plans
 
       // Query the database for the user's plan
-      const result = await plansCollection.findOne({ username });
+      const result = await plansCollection.find({username}).toArray();
+
+      console.log("HERE",result)
       console.log("USERNAME: ", username);
       // Respond based on the query result
       if (!result) {

@@ -10,7 +10,7 @@ const openai = new OpenAI({
 export default async function handler(req, res) {
   if (req.method === "POST") {
     const { username, password, topic, number, time } = req.body;
-
+    
     if (!topic || !number || !time) {
       res
         .status(400)
