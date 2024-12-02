@@ -3,21 +3,27 @@ import NewTopic from "./newTopic";
 import { useEffect, useState } from "react";
 
 export default function Dashboard(props) {
-
-  console.log(props.user);
+  const [plans, setPlans] = useState([]);
+  
   useEffect(() => {
-    if (props.user === undefined) {
+    if (!props.user) {
       window.location.href = "/";
     }
   }, [props.user]);
 
-  if (props.user === undefined) {
-    return;
-  }
+  useEffect(() => {
+    async function fetchData() {
+      if (props.user) {
+        console.log("USERNAME:", props.user.username);
+        const result = await getPlan(props.user.username);
 
-  const user = props.user;
-  
-  const [plans, setPlans] = useState([]);
+        if (result?.planExists) {
+          setPlans(result.result);
+        }
+      }
+    }
+    fetchData();
+  }, [props.user]);
 
   async function getPlan(username) {
     if (!username) {
@@ -42,36 +48,25 @@ export default function Dashboard(props) {
     return data;
   }
 
-  useEffect(() => {
-    async function fetchData() {
-      if (user) {
-        console.log("USERNAME:", user.username);
-        const result = await getPlan(user.username);
+  if (!props.user) {
+    return null; 
+  }
 
-        if (result.planExists) {
-          setPlans(result.result);
-        }
-      }
-    }
-    fetchData();
-  }, [user]);
-
-  console.log(plans)
   return (
     <>
       {plans.length === 0 ? (
-        <NewTopic username={user} />
+        <NewTopic username={props.user} />
       ) : (
         <>
-
           {plans.map((plan) => (
-            <div border="3px black solid" key={plan._id} width="20vw" height="20vw">
-   
-                {plan.topic}
-
+            <div
+              border="3px black solid"
+              key={plan._id}
+              style={{ width: "20vw", height: "20vw" }}
+            >
+              {plan.topic}
             </div>
           ))}
-
         </>
       )}
     </>
