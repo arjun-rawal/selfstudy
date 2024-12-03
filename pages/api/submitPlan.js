@@ -62,32 +62,37 @@ export default async function handler(req, res) {
         model: "gpt-4o",
         max_tokens: 5000, 
         messages: [
+          
           {
             role: "system",
-            content:
-              "You are a helpful assistant that creates detailed, structured study plans.",
-          },
-          {
-            role: "user",
             content: `
-      You are tasked with creating a detailed, day-by-day study schedule based on two inputs:
-      1. Topic: A subject such as 'AP Calculus.'
-      2. Number of Days
-      
-      Provide numbered output for each day, where each day includes:
-         - A **specific video topic** to study (e.g., "How to compute limits with L'Hôpital's Rule").
-         - A **specific assignment** to practice (e.g., "Worksheet on computing limits using L'Hôpital's Rule").
-      3. Avoid vague topics like "summary of topics" or "general review." I will be webscraping these topics for content.
-      4. The output format should look like this:
-      
-      1. video: {specific video topic} assignment: {specific assignment topic}
-      2. video: {specific video topic} assignment: {specific assignment topic}    
-      Now, create a day-by-day study schedule for the following:
-      Topic: {${topic}}
-      Number of days: {${numDays}}
-      Do not cut off in the middle, provide the entire schedule
+                                                       You are tasked with creating a detailed, day-by-day study schedule based on two inputs:
+                            1. Topic: A subject such as 'AP Calculus.'
+                            2. Number of Days: The number of days to create the schedule for.
 
-      If you do not think it is a valid topic, respond with this and only this: Not Valid
+                            Your response must be in JSON format for easy parsing. Use the following structure:
+                            
+                            [
+                                {
+                                    "day": 1,
+                                    "videoTopic": "Specific video topic for Day 1",
+                                    "assignmentLink": "Link to an assignment for Day 1"
+                                },
+                                {
+                                    "day": 2,
+                                    "videoTopic": "Specific video topic for Day 2",
+                                    "assignmentLink": "Link to an assignment for Day 2"
+                                },
+                                ...
+                            ]
+
+                            Ensure each day's video topic and assignment are specific to the subject, avoiding vague topics like "summary of topics." Ensure that all data fits the JSON structure exactly. Do not include any text outside the JSON object.
+
+                            Now, create a day-by-day study schedule for the following:
+                            Topic: ${topic}
+                            Number of days: ${numDays}
+
+                            If the topic is not valid, respond with: "Not Valid."
             `,
           },
         ],
