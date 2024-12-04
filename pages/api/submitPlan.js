@@ -92,7 +92,6 @@ export default async function handler(req, res) {
                             Topic: ${topic}
                             Number of days: ${numDays}
 
-                            If the topic is not valid, respond with: "Not Valid."
             `,
           },
         ],
