@@ -2,21 +2,33 @@ import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { username } = req.body;
+    let { username, authToken } = req.body;
 
     // Validate input
-    if (!username) {
+    if (!username && !authToken) {
       res.status(400).json({ success: false, message: 'Username is required' });
       return;
+    }
+    const client = await clientPromise;
+    const db = client.db('user_database'); // Replace with your database name
+    const sessions = db.collection('sessions')
+    if (!username){
+      try{
+        console.log(await sessions.findOne({token:authToken}))
+         username = (await sessions.findOne({token:authToken})).username
+        console.log("USERNAME FOUND", username)
+      } catch (error){
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        return;
+      }
     }
 
     try {
       // Connect to MongoDB
-      const client = await clientPromise;
-      const db = client.db('user_database'); // Replace with your database name
-      const plansCollection = db.collection('plans'); // Collection storing plans
+// Collection storing plans
 
       // Query the database for the user's plan
+      const plansCollection = db.collection('plans'); 
       const result = await plansCollection.find({username}).toArray();
 
       console.log("HERE",result)

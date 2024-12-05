@@ -100,14 +100,14 @@ const DisplayCards = (props) => {
           }}
           initial={{
             opacity: 0,
-            translateY: 20, // Start slightly below
+            translateY: 20, 
           }}
           animate={{
-            opacity: [0, 1, 1, 0], // Fade in, stay visible, fade out
-            translateY: -100, // Move upward
+            opacity: [0, 1, 1, 0],
+            translateY: -100,
           }}
           transition={{
-            duration: 5, // Total animation duration
+            duration: 5, 
             ease: "easeInOut",
           }}
         >

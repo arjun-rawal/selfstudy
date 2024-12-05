@@ -60,7 +60,7 @@ export default async function handler(req, res) {
   
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
-        max_tokens: 5000, 
+        max_tokens: 10000, 
         messages: [
           
           {
@@ -75,15 +75,14 @@ export default async function handler(req, res) {
                             [
                                 {
                                     "day": 1,
-                                    "videoTopic": "Specific video topic for Day 1",
-                                    "assignmentLink": "Link to an assignment for Day 1"
+                                    "videoTopic": " video topic for Day 1",
+                                    "assignmentLink": "link to an assignment for Day 1"
                                 },
                                 {
                                     "day": 2,
-                                    "videoTopic": "Specific video topic for Day 2",
+                                    "videoTopic": "video topic  for Day 2",
                                     "assignmentLink": "Link to an assignment for Day 2"
                                 },
-                                ...
                             ]
 
                             Ensure each day's video topic and assignment are specific to the subject, avoiding vague topics like "summary of topics." Ensure that all data fits the JSON structure exactly. Do not include any text outside the JSON object.
@@ -92,7 +91,9 @@ export default async function handler(req, res) {
                             Topic: ${topic}
                             Number of days: ${numDays}
 
-                            If the topic is not valid, respond with: "Not Valid."
+                            DO NOT START YOUR OUTPUT WITH A HEADER I.E.('''json) ONLY RETURN EXACT JSON FORMAT
+                            DO NOT PROVIDE EXAMPLE LINKS FOR ASSIGNMENTS, FIND REAL ONES ONLINE
+
             `,
           },
         ],

@@ -19,7 +19,6 @@ export async function getServerSideProps(context) {
     const cookies = req.headers.cookie ? parse(req.headers.cookie) : {};
     const sessionToken = cookies.sessionToken;
 
-    console.log("Session token from cookies:", sessionToken);
 
     if (!sessionToken) {
       console.log("No session token found in cookies");
@@ -48,7 +47,6 @@ async function getPlan(username) {
     return null;
   }
 
-  // Make a POST request to the checkPlan API
   const res = await fetch("/api/checkPlan", {
     method: "POST",
     headers: {
@@ -148,7 +146,6 @@ export default function Home({ user }) {
         >
           SelfStudy
         </Heading>
-        <p>{topic}</p>
         <Page />
         <FloatingCards />
       </main>

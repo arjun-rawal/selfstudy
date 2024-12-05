@@ -54,21 +54,7 @@ export default function Dashboard(props) {
 
   return (
     <>
-      {plans.length === 0 ? (
         <NewTopic username={props.user} />
-      ) : (
-        <>
-          {plans.map((plan) => (
-            <div
-              border="3px black solid"
-              key={plan._id}
-              style={{ width: "20vw", height: "20vw" }}
-            >
-              {plan.topic}
-            </div>
-          ))}
-        </>
-      )}
     </>
   );
 }

@@ -1,185 +1,246 @@
 import React, { useState, useEffect } from "react";
+import Cookies from "js-cookie";
+import Plan from "@/myComponents/plan";
 
 class Day {
-    constructor(dayNumber, videoLink, assignmentLink) {
-        this.dayNumber = dayNumber;
-        this.videoLink = videoLink;
-        this.assignmentLink = assignmentLink;
-    }
+  constructor(dayNumber, videoTopic, assignmentLink) {
+    this.dayNumber = dayNumber;
+    this.videoTopic = videoTopic;
+    this.assignmentLink = assignmentLink;
+    this.videoLink = "";
+    this.assignmentCompleted = false;
+    this.videoCompleted = false;
+  }
 }
 
 class Week {
-    constructor(weekNumber) {
-        this.weekNumber = weekNumber;
-        this.days = [];
-    }
+  constructor(weekNumber) {
+    this.weekNumber = weekNumber;
+    this.days = [];
+  }
 
-    addDay(day) {
-        this.days.push(day);
-    }
+  addDay(day) {
+    this.days.push(day);
+  }
 }
 
 class Month {
-    constructor(monthNumber) {
-        this.monthNumber = monthNumber;
-        this.weeks = [];
-    }
+  constructor(monthNumber) {
+    this.monthNumber = monthNumber;
+    this.weeks = [];
+  }
 
-    addWeek(week) {
-        this.weeks.push(week);
-    }
+  addWeek(week) {
+    this.weeks.push(week);
+  }
 }
 
 class Schedule {
-    constructor() {
-        this.months = [];
+  constructor() {
+    this.months = [];
+  }
+
+  addMonth(month) {
+    this.months.push(month);
+  }
+}
+
+
+
+async function fetchVideoLinks(topics) {
+  try {
+    const res = await fetch("/api/webscrape", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ topics }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch video links:", await res.text());
+      return [];
     }
 
-    addMonth(month) {
-        this.months.push(month);
-    }
+    const data = await res.json();
+    return data.links; // Assuming the API returns an array of links
+  } catch (error) {
+    console.error("Error fetching video links:", error);
+    return [];
+  }
 }
 
 // Function to parse JSON array into the schedule structure
-function parseSchedule(jsonArray) {
-    const schedule = new Schedule();
-    let currentMonth = null;
-    let currentWeek = null;
+async function parseSchedule(jsonArray) {
+  const schedule = new Schedule();
+  let currentMonth = null;
+  let currentWeek = null;
 
-    let dayCount = 0;
-    let weekCount = 0;
-    let monthCount = 0;
+  let dayCount = 0;
+  let weekCount = 0;
+  let monthCount = 0;
+  const topics = [];
 
-    jsonArray.forEach((dayData, index) => {
-        dayCount++;
-        const day = new Day(dayData.day, dayData.videoTopic, dayData.assignmentLink);
+  jsonArray.forEach((dayData, index) => {
+    dayCount++;
+    const day = new Day(dayData.day, dayData.videoTopic, dayData.assignmentLink);
+    topics.push(dayData.videoTopic);
 
-        // Start a new week every 7 days or for the first day
-        if (dayCount % 7 === 1 || currentWeek === null) {
-            weekCount++;
-            if (currentWeek) {
-                currentMonth.addWeek(currentWeek); // Append the finished week to the current month
-            }
-            currentWeek = new Week(weekCount);
-        }
+    if (dayCount % 7 === 1 || currentWeek === null) {
+      weekCount++;
+      if (currentWeek) {
+        currentMonth.addWeek(currentWeek);
+      }
+      currentWeek = new Week(weekCount);
+    }
 
-        // Add the day to the current week
-        currentWeek.addDay(day);
+    currentWeek.addDay(day);
 
-        // Start a new month every 30 days or for the first day
-        if (dayCount % 30 === 1 || currentMonth === null) {
-            monthCount++;
-            if (currentMonth) {
-                schedule.addMonth(currentMonth); // Append the finished month to the schedule
-            }
-            currentMonth = new Month(monthCount);
-        }
+    if (dayCount % 30 === 1 || currentMonth === null) {
+      monthCount++;
+      if (currentMonth) {
+        schedule.addMonth(currentMonth);
+      }
+      currentMonth = new Month(monthCount);
+    }
 
-        // Handle the last day in the input
-        if (index === jsonArray.length - 1) {
-            if (currentWeek) {
-                currentMonth.addWeek(currentWeek); // Append the last week to the current month
-            }
-            if (currentMonth) {
-                schedule.addMonth(currentMonth); // Append the last month to the schedule
-            }
-        }
+    if (index === jsonArray.length - 1) {
+      if (currentWeek) {
+        currentMonth.addWeek(currentWeek);
+      }
+      if (currentMonth) {
+        schedule.addMonth(currentMonth);
+      }
+    }
+  });
+
+  // Fetch video links for all topics
+  const links = await fetchVideoLinks(topics);
+  console.log(links)
+  // Map the fetched links back to the days
+  let linkIndex = 0;
+  schedule.months.forEach((month) => {
+    month.weeks.forEach((week) => {
+      week.days.forEach((day) => {
+        day.videoLink = links[linkIndex++] || "No video link available";
+      });
     });
+  });
 
-    return schedule;
+  return schedule;
 }
 
-
 // Function to fetch the plan from the API
-async function getPlan(username) {
-    if (!username) {
-        console.error("No username provided");
-        return null;
+async function getPlan(token) {
+  if (!token) {
+    console.error("No token provided");
+    return null;
+  }
+
+  try {
+    const res = await fetch("/api/checkPlan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ authToken: token }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch plan:", await res.text());
+      return null;
     }
 
-    try {
-        const res = await fetch("/api/checkPlan", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username }),
-        });
+    const data = await res.json();
+    console.log(data)
+    return data.result[0];
+  } catch (error) {
+    console.error("Error fetching plan:", error);
+    return null;
+  }
+}
 
-        if (!res.ok) {
-            console.error("Failed to fetch plan:", await res.text());
-            return null;
-        }
-
-        const data = await res.json();
-        return data.result[0].outputText; // Adjust this if the API structure differs
-    } catch (error) {
-        console.error("Error fetching plan:", error);
-        return null;
+async function updateSchedule(planId, schedule){
+  if (!planId || !schedule){
+    console.error("planId and schedule required!");
+    return;
+  }
+  console.log(planId, schedule)
+  try{
+    const res = await fetch("/api/fillSchedule", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ _id: planId, schedule }),
+    });
+    
+    if (!res.ok) {
+      console.error("Failed to fetch plan:", await res.text());
+      return null;
     }
+    
+    const data = await res.json();
+    console.log(data)
+    return data.result;
+  } catch (error) {
+    console.error("Error fetching plan:", error);
+    return null;
+  }
 }
 
 export default function StudyPlan() {
-    const [daySchedule, setDaySchedule] = useState(null);
+  const [daySchedule, setDaySchedule] = useState(null);
+  const [planId, setPlanId] = useState("");
+  let authToken = ""
+  if (Cookies.get('sessionToken')){
+    console.log("got it")
+     authToken = Cookies.get('sessionToken');
+  }
+  
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const outputText = await getPlan("a");
-                if (!outputText) {
-                    console.error("No data received from the API");
-                    return;
-                }
-
-                // Parse the JSON string from the API directly
-                const parsedJson = JSON.parse(outputText);
-                console.log(parsedJson);
-                // Process the parsed JSON into the schedule structure
-                const schedule = parseSchedule(parsedJson);
-                setDaySchedule(schedule);
-                console.log(schedule)
-            } catch (error) {
-                console.error("Error processing the schedule:", error);
-            }
+ 
+    async function fetchData() {
+      console.log("FETCHED")
+      try {
+        console.log(authToken)
+        const plan = await getPlan(authToken);
+        console.log("PLAN IS HERE", plan)
+        const outputText = plan.outputText;
+        const planID = plan._id;
+        setPlanId(planID);
+        if (!outputText) {
+          console.error("No data received from the API");
+          return;
         }
 
-        fetchData();
-    }, []); // Empty dependency array ensures this runs only once
+        if (!plan.schedule){
+          const parsedJson = JSON.parse(outputText);
 
-    if (!daySchedule) return <div>Loading...</div>;
+          const schedule = await parseSchedule(parsedJson);
+          setDaySchedule(schedule);
+          updateSchedule(planID, schedule);
+        }
+        else{
+          setDaySchedule(plan.schedule)
+        }
+        console.log(plan.schedule
 
-    return (
-        <div>
-            <h1>Study Plan</h1>
-            {daySchedule.months.map((month, monthIndex) => (
-                <div key={monthIndex} style={{ marginBottom: "20px" }}>
-                    <h2>Month {month.monthNumber}</h2>
-                    {month.weeks.map((week, weekIndex) => (
-                        <div key={weekIndex} style={{ marginBottom: "15px" }}>
-                            <h3>Week {week.weekNumber}</h3>
-                            <ul>
-                                {week.days.map((day) => (
-                                    <li key={day.dayNumber}>
-                                        <strong>Day {day.dayNumber}</strong>:<br />
-                                        <span>Video Topic: {day.videoLink}</span>
-                                        <br />
-                                        <span>
-                                            Assignment:{" "}
-                                            <a
-                                                href={day.assignmentLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                {day.assignmentLink}
-                                            </a>
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-            ))}
-        </div>
-    );
+        )
+      } catch (error) {
+        console.error("Error processing the schedule:", error);
+      }
+    }
+    useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (!daySchedule) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <Plan studyPlan={daySchedule} planID = {planId} refreshPlan = {fetchData}/>
+
+    </div>
+  );
 }

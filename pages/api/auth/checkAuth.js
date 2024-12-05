@@ -1,7 +1,7 @@
 import clientPromise from '../../../lib/mongodb';
 
-export default async function authMiddleware({ cookies }) {
-  const sessionToken = cookies?.sessionToken;
+export default async function authMiddleware({ cookies, givenSessionToken }) {
+  const sessionToken = givenSessionToken || cookies?.sessionToken;
 
   console.log("Session token received in authMiddleware:", sessionToken);
 

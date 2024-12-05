@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       });
 
       // Set the session token as an HTTP-only cookie
-      res.setHeader('Set-Cookie', `sessionToken=${sessionToken}; HttpOnly; Path=/; Max-Age=3600;`);
+      res.setHeader('Set-Cookie', `sessionToken=${sessionToken}; Path=/; Max-Age=3600;`);
 
       res.status(200).json({ success: true, message: 'Login successful' });
     } catch (error) {
