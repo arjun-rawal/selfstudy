@@ -60,7 +60,7 @@ export default async function handler(req, res) {
   
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
-        max_tokens: 10000, 
+        max_tokens: 5000, 
         messages: [
           
           {
