@@ -169,7 +169,10 @@ async function getPlan(token) {
     }
 
     const data = await res.json();
-    console.log(data);
+    if (!data.planExists){
+      return null;
+    }
+    console.log("ABC",data);
     return data.result[0];
   } catch (error) {
     console.error("Error fetching plan:", error);
@@ -220,60 +223,62 @@ export default function StudyPlan() {
   const [planId, setPlanId] = useState("");
   const [authToken, setAuthToken] = useState(null);
 
+  
   useEffect(() => {
     const token = Cookies.get("sessionToken");
     if (token) {
       setAuthToken(token);
     } else {
-      router.replace("/").then(() => {
-        window.location.reload(); // Reload after navigation completes
-      });         
-      // Redirect to home if no token
+      // Redirect to home if no token is found
+      router.replace("/").then(() => window.location.reload());
     }
   }, [router]);
+  
+  
 
-
-
-  /**
-   * Retrieves the users plan, and calls all the neccessary functions to handle it
-   */
   async function fetchData() {
+    if (!authToken) {
+      return;
+    }
     try {
       const plan = await getPlan(authToken);
-      console.log("PLAN IS HERE", plan);
-      const outputText = plan.outputText;
-      const planID = plan._id;
-      setPlanId(planID);
-      if (!outputText) {
-        console.error("No data received from the API");
-        return;
-      }
+        console.log("PLAN IS HERE", plan);
+        if (!plan){
+          return;
+        }
+        const outputText = plan.outputText;
+        const planID = plan._id;
+        setPlanId(planID);
+        if (!outputText) {
+          console.error("No data received from the API");
+          return;
+        }
 
-      if (!plan.schedule) {
-        const parsedJson = JSON.parse(outputText);
+        if (!plan.schedule) {
+          const parsedJson = JSON.parse(outputText);
 
-        const schedule = await parseSchedule(parsedJson);
-        setDaySchedule(schedule);
-        updateSchedule(planID, schedule);
-      } else {
-        setDaySchedule(plan.schedule);
-      }
+          const schedule = await parseSchedule(parsedJson);
+          setDaySchedule(schedule);
+          updateSchedule(planID, schedule);
+        } else {
+          setDaySchedule(plan.schedule);
+        }
+
+      
     } catch (error) {
       console.error("Error processing the schedule:", error);
     }
   }
   useEffect(() => {
-    if (!authToken){
-      return (<>Log in to your account first!!</>)
-    }
+
     fetchData();
-  }, []);
+    
+  }, [authToken]);
 
   if (!daySchedule) return <div>Loading...</div>;
 
   return (
     <div>
-
       <Plan studyPlan={daySchedule} planID={planId} refreshPlan={fetchData} />
     </div>
   );

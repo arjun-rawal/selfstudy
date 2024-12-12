@@ -20,8 +20,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import YouTubeEmbed from "./YoutubeEmbed";
 import { useRouter } from "next/router";
 
-async function handleLogout() {
-    const router = useRouter();
+
+/** 
+ * Render the studyPlan object on screen
+ * @param {studyPlan} plan object created in pages/studyPlan.js
+ * @param {planID} id of the user's plan from the database
+ * @param {refreshPlan} function from pages/studyPlan.js to update the plan object on plan modification (user clicking done on a task)
+ * @returns jsx react component for the plan to display on front-end
+*/
+const Plan = ({ studyPlan, planID, refreshPlan }) => {
+  const router = useRouter();
+
+  async function handleLogout() {
   try {
     const res = await fetch("/api/auth/logout", {
       method: "POST",
@@ -31,21 +41,13 @@ async function handleLogout() {
     });
 
     if (res.ok) {
-      router.push("/")
+      router.push("/");
+      window.location.reload();
     }
   } catch (error) {
     console.error("Error logging out:", error);
   }
 }
-/** 
- * Render the studyPlan object on screen
- * @param {studyPlan} plan object created in pages/studyPlan.js
- * @param {planID} id of the user's plan from the database
- * @param {refreshPlan} function from pages/studyPlan.js to update the plan object on plan modification (user clicking done on a task)
- * @returns jsx react component for the plan to display on front-end
-*/
-const Plan = ({ studyPlan, planID, refreshPlan }) => {
-
   const { months } = studyPlan;
   const [selectedDay, setSelectedDay] = useState(null);
   const [assignmentCompleted, setAssignmentCompleted] = useState(false);

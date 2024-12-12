@@ -34,9 +34,9 @@ export default function NewTopic(props) {
     async function fetchData() {
 
         const result = await getPlan(username);
-        if (result.planExists) {
-          router.push("/studyPlan")
-        }
+        // if (result.planExists) {
+        //   router.push("/studyPlan")
+        // }
       
     }
     fetchData();
