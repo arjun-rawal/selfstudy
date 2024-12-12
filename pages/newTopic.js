@@ -34,9 +34,9 @@ export default function NewTopic(props) {
     async function fetchData() {
 
         const result = await getPlan(username);
-        // if (result.planExists) {
-        //   router.push("/studyPlan")
-        // }
+        if (result.planExists) {
+          router.push("/studyPlan")
+        }
       
     }
     fetchData();
@@ -108,6 +108,9 @@ export default function NewTopic(props) {
     }
     if (!res.ok) {
       alert(data.message);
+      if (data.message === "Limit to 1 plan/user"){
+        router.push("/studyPlan")
+      }
     }
   }
 
@@ -258,6 +261,7 @@ export default function NewTopic(props) {
             />
             {showErrorMessage ? <Text> Captcha Required! </Text> : <></>}
             <Button onClick={handleGenerate}>Generate</Button>
+
           </>
         )}
       </Stack>
