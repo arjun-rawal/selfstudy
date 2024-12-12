@@ -44,7 +44,7 @@ export default function AuthScreen() {
 
   return (
     <>
-      <Center width="100vw" height="100vh">
+      <Center width="100vw" height="80vh">
         <Stack>
           <Card />
           <Center>

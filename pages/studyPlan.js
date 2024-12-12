@@ -232,9 +232,7 @@ export default function StudyPlan() {
     }
   }, [router]);
 
-  if (!authToken){
-    return (<>Log in to your account first!!</>)
-  }
+
 
   /**
    * Retrieves the users plan, and calls all the neccessary functions to handle it
@@ -265,6 +263,9 @@ export default function StudyPlan() {
     }
   }
   useEffect(() => {
+    if (!authToken){
+      return (<>Log in to your account first!!</>)
+    }
     fetchData();
   }, []);
 
