@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
+/** 
+ * Component to handle the Vast Video format for the video ads
+ * @param {vastURL} vastUrl to be handled
+ * @param {handleCompelete} function to be called on ad end
+ * @returns jsx component of the video to be displayed on frontend
+ */
 const VastVideoPlayer = ({ vastUrl, handleComplete }) => {
   const videoRef = useRef(null);
 

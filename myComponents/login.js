@@ -2,6 +2,14 @@ import { Button, Card, Center, Input, Stack } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { useState } from "react";
 
+
+
+
+
+
+/** 
+ * Log in component of authScreen.js
+ */
 export default function Login() {
     const [username,setUsername] = useState("");
     const [password,setPassword] = useState("");
@@ -9,7 +17,6 @@ export default function Login() {
 
     const handleSubmit = async () => {
       
-        console.log(username,password);
         const res = await fetch('/api/auth/loginAuth', {
           method: 'POST',
           headers: {
@@ -21,6 +28,7 @@ export default function Login() {
         const data = await res.json();
       
         if (res.ok) {
+          //reload the page to handle the reload because index.js checks for the session cookie so the page will know user is logged in
           window.location.reload();          
 
         } else {
@@ -30,7 +38,6 @@ export default function Login() {
 
   return (
     <>
-  
       <Card.Root maxW="sm">
         <Card.Header>
           <Card.Description>

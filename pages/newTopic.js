@@ -17,25 +17,76 @@ import VideoAd from "@/myComponents/videoAd";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useRouter } from "next/router";
 
+/**
+ * New Topic form where the user can generate a studyplan for themself
+ * @param {props.username} username of the authenticated user
+ * @param {props.password} password of the authenticated user, we need this because the newPLan api is protected
+ * @returns react component of the form
+ */
 export default function NewTopic(props) {
+  const username = props.user?.username || "";
+  const password = props.user?.password || "";
+  const router = useRouter();
+
+
+  //Limiting the user to only one plan as of now, if a plan exists, it routes them to the studyPLan page
+  useEffect(() => {
+    async function fetchData() {
+
+        const result = await getPlan(username);
+        if (result.planExists) {
+          router.push("/studyPlan")
+        }
+      
+    }
+    fetchData();
+  }, []);
+
+  async function getPlan(username) {
+    if (!username) {
+      console.error("No username provided");
+      return null;
+    }
+  
+    const res = await fetch("/api/checkPlan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username }),
+    });
+  
+    if (!res.ok) {
+      console.error("Failed to fetch plan:", await res.text());
+      return null;
+    }
+  
+    const data = await res.json();
+    return data;
+  }
+
+
+
+
+
+
+  //I used usestates to handle the form values instead of a form component
   const [timeVal, setTimeVal] = useState("Months");
   const [numVal, setNumVal] = useState(3);
   const [topic, setTopic] = useState("");
+  const [validCaptcha, setValidCaptcha] = useState(false);
+
   const [showAd, setShowAd] = useState(false);
   const [gptCall, setGptCall] = useState(false);
-  const username = props.username?.username || "";
-  const password = props.username?.password || "";
-  const vastUrl = "https://basil79.github.io/vast-sample-tags/pg/vast.xml";
-  const [validCaptcha, setValidCaptcha] = useState(false);
   const [showErrorMessage, setErrorMessage] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
-  const handleNumChange = (newVal) => {
-    setNumVal(newVal.valueAsNumber);
-  };
 
-  const router = useRouter();
 
+  /**
+   * sends form values to submitPlan API
+   */
   async function handleNew() {
+    console.log(username,password)
     const res = await fetch("/api/submitPlan", {
       method: "POST",
       headers: {
@@ -60,6 +111,9 @@ export default function NewTopic(props) {
     }
   }
 
+  /**
+   * Handles ad and calls above function
+   */
   const handleGenerate = () => {
     if (validCaptcha) {
       setShowAd(true);
@@ -69,12 +123,17 @@ export default function NewTopic(props) {
     }
   };
 
+  const handleNumChange = (newVal) => {
+    setNumVal(newVal.valueAsNumber);
+  };
+
   const handleAdComplete = () => {
     console.log("AD DONE");
     setShowAd(false);
     setShowLoading(true);
   };
 
+  //if the ad is done(not showing), and openai has returned the call, navigate the user to /studyPLan
   useEffect(() => {
     if (!showAd && gptCall) {
       router.push("/studyPlan");
@@ -82,7 +141,6 @@ export default function NewTopic(props) {
   }, [showAd, gptCall]);
 
   return (
-    
     <Center height={"95vh"}>
       <Stack gap="2vh" width="auto">
         {showLoading ? (
@@ -93,22 +151,22 @@ export default function NewTopic(props) {
               left="0"
               width="100%"
               height="100%"
-              bg="rgba(0, 0, 0, 0.5)" 
-              zIndex="999" 
+              bg="rgba(0, 0, 0, 0.5)"
+              zIndex="999"
             />
             <Center
               position="fixed"
               top="50%"
               left="50%"
-              transform="translate(-50%, -50%)" 
-              zIndex="1000" 
+              transform="translate(-50%, -50%)"
+              zIndex="1000"
             >
               <>
                 <Text fontSize="lg" fontWeight="bold">
                   Loading...
                 </Text>
               </>
-            </Center> 
+            </Center>
           </>
         ) : (
           <></>
@@ -116,16 +174,6 @@ export default function NewTopic(props) {
 
         {showAd ? (
           <>
-            {/* <video
-              id="video-player"
-              controls
-              width="600"
-              onEnded={handleAdComplete}
-              autoPlay
-            >
-              <source src={vastUrl} type="application/xml+vast" />
-              Your browser does not support the video tag.
-            </video> */}
             <Box
               position="fixed"
               top="0"
@@ -137,6 +185,7 @@ export default function NewTopic(props) {
             />
             <Box zIndex={15}>
               <Text alignSelf={"center"}>Watch this ad to proceed:</Text>
+              {/*ad provider takes ~2 weeks to approve, so this is a random temporary ad. When they approve, all we have to do is change this url to their vast url*/}
               <VideoAd
                 vastUrl={
                   "https://basil79.github.io/vast-sample-tags/pg/vast.xml"
@@ -145,8 +194,6 @@ export default function NewTopic(props) {
               />
             </Box>
             <Box />
-
-            {/* <iframe width="560" height="315" src="https://www.youtube.com/embed/qZS50KXjAX0?si=D5r2krQtDbp7MXq5" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> */}
           </>
         ) : (
           <>

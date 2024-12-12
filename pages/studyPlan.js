@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import Plan from "@/myComponents/plan";
+import { Button } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 
+//kept class methods/attributes public
 class Day {
   constructor(dayNumber, videoTopic, assignmentLink) {
     this.dayNumber = dayNumber;
@@ -45,11 +48,14 @@ class Schedule {
   }
 }
 
-
-
+/**
+ * Retrieves video links from findVideos api
+ * @param {topics} list of subtopics to retrieve videos for
+ * @returns array of video links
+ */
 async function fetchVideoLinks(topics) {
   try {
-    const res = await fetch("/api/webscrape", {
+    const res = await fetch("/api/findVideos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -63,14 +69,17 @@ async function fetchVideoLinks(topics) {
     }
 
     const data = await res.json();
-    return data.links; // Assuming the API returns an array of links
+    return data.links;
   } catch (error) {
     console.error("Error fetching video links:", error);
     return [];
   }
 }
 
-// Function to parse JSON array into the schedule structure
+/**
+ * takes the json sent from openai and creates it into the object structure
+ * @param {jsonArray} json formatted day-to-day structure
+ */
 async function parseSchedule(jsonArray) {
   const schedule = new Schedule();
   let currentMonth = null;
@@ -83,7 +92,11 @@ async function parseSchedule(jsonArray) {
 
   jsonArray.forEach((dayData, index) => {
     dayCount++;
-    const day = new Day(dayData.day, dayData.videoTopic, dayData.assignmentLink);
+    const day = new Day(
+      dayData.day,
+      dayData.videoTopic,
+      dayData.assignmentLink
+    );
     topics.push(dayData.videoTopic);
 
     if (dayCount % 7 === 1 || currentWeek === null) {
@@ -116,7 +129,7 @@ async function parseSchedule(jsonArray) {
 
   // Fetch video links for all topics
   const links = await fetchVideoLinks(topics);
-  console.log(links)
+  console.log(links);
   // Map the fetched links back to the days
   let linkIndex = 0;
   schedule.months.forEach((month) => {
@@ -130,7 +143,11 @@ async function parseSchedule(jsonArray) {
   return schedule;
 }
 
-// Function to fetch the plan from the API
+/**
+ * retrieves the user's plan to be displayed
+ * @param {token} sessionToken
+ * @returns first plan associated with the user from the database
+ */
 async function getPlan(token) {
   if (!token) {
     console.error("No token provided");
@@ -152,7 +169,7 @@ async function getPlan(token) {
     }
 
     const data = await res.json();
-    console.log(data)
+    console.log(data);
     return data.result[0];
   } catch (error) {
     console.error("Error fetching plan:", error);
@@ -160,13 +177,18 @@ async function getPlan(token) {
   }
 }
 
-async function updateSchedule(planId, schedule){
-  if (!planId || !schedule){
+/**
+ * Changes the schedule to the updated one
+ * @param {planID} ID associated with the specific plan
+ * @param {schedule} Updated schedule
+ */
+async function updateSchedule(planId, schedule) {
+  if (!planId || !schedule) {
     console.error("planId and schedule required!");
     return;
   }
-  console.log(planId, schedule)
-  try{
+  console.log(planId, schedule);
+  try {
     const res = await fetch("/api/fillSchedule", {
       method: "POST",
       headers: {
@@ -174,14 +196,14 @@ async function updateSchedule(planId, schedule){
       },
       body: JSON.stringify({ _id: planId, schedule }),
     });
-    
+
     if (!res.ok) {
       console.error("Failed to fetch plan:", await res.text());
       return null;
     }
-    
+
     const data = await res.json();
-    console.log(data)
+    console.log(data);
     return data.result;
   } catch (error) {
     console.error("Error fetching plan:", error);
@@ -189,49 +211,60 @@ async function updateSchedule(planId, schedule){
   }
 }
 
+/**
+ * displays the myComponents/plan.js component
+ */
 export default function StudyPlan() {
+  const router = useRouter();
   const [daySchedule, setDaySchedule] = useState(null);
   const [planId, setPlanId] = useState("");
-  let authToken = ""
-  if (Cookies.get('sessionToken')){
-    console.log("got it")
-     authToken = Cookies.get('sessionToken');
-  }
-  
+  const [authToken, setAuthToken] = useState(null);
 
- 
-    async function fetchData() {
-      console.log("FETCHED")
-      try {
-        console.log(authToken)
-        const plan = await getPlan(authToken);
-        console.log("PLAN IS HERE", plan)
-        const outputText = plan.outputText;
-        const planID = plan._id;
-        setPlanId(planID);
-        if (!outputText) {
-          console.error("No data received from the API");
-          return;
-        }
-
-        if (!plan.schedule){
-          const parsedJson = JSON.parse(outputText);
-
-          const schedule = await parseSchedule(parsedJson);
-          setDaySchedule(schedule);
-          updateSchedule(planID, schedule);
-        }
-        else{
-          setDaySchedule(plan.schedule)
-        }
-        console.log(plan.schedule
-
-        )
-      } catch (error) {
-        console.error("Error processing the schedule:", error);
-      }
+  useEffect(() => {
+    const token = Cookies.get("sessionToken");
+    if (token) {
+      setAuthToken(token);
+    } else {
+      router.replace("/").then(() => {
+        window.location.reload(); // Reload after navigation completes
+      });         
+      // Redirect to home if no token
     }
-    useEffect(() => {
+  }, [router]);
+
+  if (!authToken){
+    return (<>Log in to your account first!!</>)
+  }
+
+  /**
+   * Retrieves the users plan, and calls all the neccessary functions to handle it
+   */
+  async function fetchData() {
+    try {
+      const plan = await getPlan(authToken);
+      console.log("PLAN IS HERE", plan);
+      const outputText = plan.outputText;
+      const planID = plan._id;
+      setPlanId(planID);
+      if (!outputText) {
+        console.error("No data received from the API");
+        return;
+      }
+
+      if (!plan.schedule) {
+        const parsedJson = JSON.parse(outputText);
+
+        const schedule = await parseSchedule(parsedJson);
+        setDaySchedule(schedule);
+        updateSchedule(planID, schedule);
+      } else {
+        setDaySchedule(plan.schedule);
+      }
+    } catch (error) {
+      console.error("Error processing the schedule:", error);
+    }
+  }
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -239,8 +272,8 @@ export default function StudyPlan() {
 
   return (
     <div>
-      <Plan studyPlan={daySchedule} planID = {planId} refreshPlan = {fetchData}/>
 
+      <Plan studyPlan={daySchedule} planID={planId} refreshPlan={fetchData} />
     </div>
   );
 }

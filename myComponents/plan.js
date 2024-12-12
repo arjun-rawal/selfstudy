@@ -18,22 +18,53 @@ import {
 } from "@chakra-ui/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import YouTubeEmbed from "./YoutubeEmbed";
+import { useRouter } from "next/router";
 
+async function handleLogout() {
+    const router = useRouter();
+  try {
+    const res = await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (res.ok) {
+      router.push("/")
+    }
+  } catch (error) {
+    console.error("Error logging out:", error);
+  }
+}
+/** 
+ * Render the studyPlan object on screen
+ * @param {studyPlan} plan object created in pages/studyPlan.js
+ * @param {planID} id of the user's plan from the database
+ * @param {refreshPlan} function from pages/studyPlan.js to update the plan object on plan modification (user clicking done on a task)
+ * @returns jsx react component for the plan to display on front-end
+*/
 const Plan = ({ studyPlan, planID, refreshPlan }) => {
+
   const { months } = studyPlan;
   const [selectedDay, setSelectedDay] = useState(null);
   const [assignmentCompleted, setAssignmentCompleted] = useState(false);
   const [videoCompleted, setVideoCompleted] = useState(false);
 
   const handleDayClick = (day) => {
+    console.log("DAYC",assignmentCompleted,videoCompleted)
     setAssignmentCompleted(day.assignmentCompleted);
     setVideoCompleted(day.videoCompleted);
     setSelectedDay(day);
   };
 
-  async function handleExit() {
-    let updatedStudyPlan = JSON.parse(JSON.stringify(studyPlan)); //makes a new copy instead pf modifying both
-    console.log(assignmentCompleted, videoCompleted);
+
+/** 
+ * When the user clicks off a card, it sets a new studyplan with the modified completed attributes, then sends that plan to the database
+ */  
+    async function handleExit() {
+    let updatedStudyPlan = JSON.parse(JSON.stringify(studyPlan)); //makes a new copy instead of modifying both
+    console.log("COMPLETED?:",assignmentCompleted, videoCompleted);
     for (let month of updatedStudyPlan.months) {
       for (let week of month.weeks) {
         for (let day of week.days) {
@@ -70,6 +101,17 @@ const Plan = ({ studyPlan, planID, refreshPlan }) => {
   }
   return (
     <VStack spacing={6} align="stretch" w="100vw" paddingLeft="1vw" paddingRight="1vw">
+            <Button
+                  position={"absolute"}
+                  left={"90vw"}
+                  top={"2vh"}
+                  transform={"translate(0%,0%)"}
+                  onClick={() => {
+                    handleLogout();
+                  }}
+                >
+                  Log out
+                </Button>
       {months.map((month, monthIndex) => (
         <Box key={monthIndex}>
           <Heading mb={5} textAlign="center">
@@ -159,8 +201,8 @@ const Plan = ({ studyPlan, planID, refreshPlan }) => {
                               color: "blue",
                               textDecoration: "underline",
                             }}
-                            wordWrap= "break-word" 
-                            wordBreak= "break-all" 
+                            wordwrap= "break-word" 
+                            wordbreak= "break-all" 
                           >
                             {selectedDay?.assignmentLink}
                           </a>

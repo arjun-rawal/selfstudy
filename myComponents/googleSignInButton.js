@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
 
+//This is code is mostly taken from the google oauth documentation, it loads the script grom google and displays the sign in with google button
+
+
+/** 
+ * Google Sign in button
+ */
 const GoogleSignInButton = () => {
   useEffect(() => {
     const script = document.createElement("script");
@@ -11,7 +17,6 @@ const GoogleSignInButton = () => {
       document.body.removeChild(script); 
     };
   }, []);
- console.log(process.env.GOOGLE_CLIENT_ID)
   return (
     <div>
 
@@ -19,6 +24,7 @@ const GoogleSignInButton = () => {
         id="g_id_onload"
         data-client_id={process.env.GOOGLE_CLIENT_ID} 
         data-login_uri= {process.env.GOOGLE_REDIRECT_URL}
+        data-auto_prompt = "false"
       ></div>
       <div
         className="g_id_signin" 
@@ -28,6 +34,7 @@ const GoogleSignInButton = () => {
         data-shape="rectangular"
         data-logo_alignment="left"  
         data-theme = "filled_black"
+
         
       ></div>
     </div>

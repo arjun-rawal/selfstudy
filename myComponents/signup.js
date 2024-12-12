@@ -1,12 +1,20 @@
 import { Button, Card, Center, Input, Stack } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { useState } from "react";
-export default function Login() {
+
+/** 
+ * Sign up component of pages/auth.js
+ * @returns signup jsx component
+ */
+export default function SignUp() {
     const [username,setUsername] = useState("");
     const [password,setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState('');
 
-
+    /** 
+     * when the user clicks submit, it checks if the passwords match, then it sends it to the database, 
+     * if the user already exists signupAuth.js will return an error of user already exists so the user knows
+     */
     const handleSubmit = async () => {
       
         console.log(username,password);

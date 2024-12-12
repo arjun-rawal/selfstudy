@@ -2,12 +2,20 @@ import { Box, Text } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
+
+
+
+
+/** 
+*Cards that display on the side of the screen
+ */
 const FloatingCards = () => {
-  const [cards, setCards] = useState([]); // Fetched cards
+  const [cards, setCards] = useState([]); // Fetch cards
   const [isLoading, setIsLoading] = useState(true); // Track loading state
 
   useEffect(() => {
     async function fetchCards() {
+      //send request to get the content for the cards
       try {
         const res = await fetch("/api/getAllPlans", {
           method: "POST",
@@ -16,17 +24,41 @@ const FloatingCards = () => {
           },
         });
 
+        console.log("HERE,",res)
+
         if (!res.ok) {
           console.error("Failed to fetch cards:", await res.text());
           return;
         }
 
         const data = await res.json();
-        setCards(data.data || []); // Set the fetched cards
-        setIsLoading(false); // Set loading to false after data is fetched
+        if (data.data.length==0){
+          console.log("NO EXAMPLE CARDS")
+          const res = await fetch("/api/fillData",{
+            method: "POST",
+            headers:{
+              "Content-Type": "application/json",
+            },
+            body:JSON.stringify({count: 200})
+            
+          });
+          if (res.ok){
+            fetchCards();
+          }
+        }
+        else{
+          setCards(data.data || []); // Set the fetched cards
+          setIsLoading(false); // Set loading to false after data is fetched
+        }
+
+
+
+
+
+      
       } catch (error) {
         console.error("Error fetching cards:", error);
-        setIsLoading(false); // Set loading to false even if there's an error
+        setIsLoading(false); 
       }
     }
 
@@ -52,8 +84,13 @@ const DisplayCards = (props) => {
   const spawnCard = () => {
     
     const randomCard = cards[Math.floor(Math.random() * cards.length)];
+
+    //If the time value is one ("Calculus in 1 days") truncate the last letter(s) so that it's ("Calculus in 1 day") instead
     if (randomCard.text.split("in")[randomCard.text.split("in").length-1].indexOf(1)>-1){
+      if (randomCard.text.substring(randomCard.text.length-1, randomCard.text.length) =="s"){
       randomCard.text = randomCard.text.substring(0,randomCard.text.length-1);
+      }
+
     }
     const newCard = {
       ...randomCard,
@@ -66,6 +103,7 @@ const DisplayCards = (props) => {
 
     setTimeout(() => {
       setActiveCards((prev) =>
+        //no duplicate card spawning since it cuts the other one off
         prev.filter((item) => item.spawnId !== newCard.spawnId)
       );
     }, 5000); 
@@ -74,7 +112,8 @@ const DisplayCards = (props) => {
   useEffect(() => {
     const interval = setInterval(() => {
       spawnCard();
-    }, Math.random() * 1500 + 1500); 
+    }, Math.random() * 1500 +1500); 
+    //random time from (1500,3000) ms
 
     return () => clearInterval(interval); 
   }, [cards]);

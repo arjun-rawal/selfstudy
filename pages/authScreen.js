@@ -2,7 +2,12 @@ import { Button, Center, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import Login from "../myComponents/login";
 import Signup from "../myComponents/signup";
 import { useState } from "react";
-import GoogleSignInButton from "../myComponents/googleSignInButton"
+import GoogleSignInButton from "../myComponents/googleSignInButton";
+
+/**
+ * Combines the login, signup, and google button component to the authScreen page
+ * @returns jsx component
+ */
 export default function AuthScreen() {
   const [account, setAccount] = useState(true);
 
@@ -36,7 +41,7 @@ export default function AuthScreen() {
       );
     }
   };
-  
+
   return (
     <>
       <Center width="100vw" height="100vh">
@@ -44,7 +49,7 @@ export default function AuthScreen() {
           <Card />
           <Center>
             <VStack>
-             <GoogleSignInButton/>
+              <GoogleSignInButton />
             </VStack>
           </Center>
         </Stack>
