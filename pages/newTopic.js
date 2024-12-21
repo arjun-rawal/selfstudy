@@ -119,7 +119,6 @@ export default function NewTopic(props) {
    */
   const handleGenerate = () => {
     if (validCaptcha) {
-      setShowAd(true);
       handleNew();
     } else {
       setErrorMessage(true);

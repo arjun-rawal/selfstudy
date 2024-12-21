@@ -1,11 +1,16 @@
 import clientPromise from "../../lib/mongodb";
 import OpenAI from "openai";
 import { useState, useEffect } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
   dangerouslyAllowBrowser: true,
 });
+
+const genAI = new GoogleGenerativeAI('AIzaSyCqawHb149MKLiMRby9Wj_M633htQzkBnI');
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 
 /**
  * Sends the plan prompt to openai to retrieve the day by day subtopics and websites
@@ -69,13 +74,8 @@ export default async function handler(req, res) {
         numDays = number * 30;
       }
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        max_tokens: 5000,
-        messages: [
-          {
-            role: "system",
-            content: `
+      console.log("SENDING")
+      const prompt= `
                           You are tasked with creating a detailed, day-by-day study schedule based on two inputs:
                             1. Topic: A subject such as 'AP Calculus.'
                             2. Number of Days: The number of days to create the schedule for.
@@ -104,35 +104,35 @@ export default async function handler(req, res) {
                             DO NOT START YOUR OUTPUT WITH A HEADER I.E.('''json) ONLY RETURN EXACT JSON FORMAT
                             DO NOT PROVIDE EXAMPLE LINKS FOR ASSIGNMENTS, FIND REAL ONES ONLINE
 
-            `,
-          },
-        ],
-        temperature: 0.7,
-        n: 1,
-      });
+            `;
+        const aiResult = await model.generateContent(prompt);
       //store the cost in database for developer reference
-      const promptTokens = completion.usage.prompt_tokens;
-      const completionTokens = completion.usage.completion_tokens;
+      // const promptTokens = completion.usage.prompt_tokens;
+      // const completionTokens = completion.usage.completion_tokens;
 
-      const costInput = (promptTokens / 1000000) * 2.5;
-      const costOutput = (completionTokens / 1000000) * 10;
+      // const costInput = (promptTokens / 1000000) * 2.5;
+      // const costOutput = (completionTokens / 1000000) * 10;
 
-      const totalCost = costInput + costOutput;
-      let outputText = completion.choices[0].message.content;
-      
+      // const totalCost = costInput + costOutput;
+      // let outputText = completion.choices[0].message.content;
+      let outputText = aiResult.response.text();
+      console.log("HERETEXT")
+      console.log(outputText)
+      console.log(aiResult)
+
       //sometimes openai will start the response with '''json and end it with ''' which makes it unparsable so we clean it here
-      outputText = outputText.trim() //removes whitespace
-      if (outputText.startsWith("'''json") && outputText.endsWith("'''")) {
+      outputText = outputText.trim(); // Removes whitespace
+      if (outputText.startsWith("```json") && outputText.endsWith("```")) { // Matches correct delimiters
         outputText = outputText
-          .replace(/^'''json\s*/, '') // Removes '''json
-          .replace(/'''$/, '');       // Remove  '''
+          .replace(/^```json\s*/, '') // Removes ```json at the start
+          .replace(/```$/, '');       // Removes ``` at the end
       }
+      
       const result = await plansCollection.insertOne({
         username,
         topic,
         numDays,
         outputText,
-        totalCost,
       });
 
       res.status(201).json({
