@@ -8,7 +8,7 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-const genAI = new GoogleGenerativeAI('AIzaSyCqawHb149MKLiMRby9Wj_M633htQzkBnI');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 

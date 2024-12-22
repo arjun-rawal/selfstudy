@@ -6,7 +6,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Make sure to include these imports:
 
-const genAI = new GoogleGenerativeAI('AIzaSyCqawHb149MKLiMRby9Wj_M633htQzkBnI');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const prompt = `"You are tasked with creating a detailed, day-by-day study schedule based on two inputs:
