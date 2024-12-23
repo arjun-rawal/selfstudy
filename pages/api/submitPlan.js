@@ -12,6 +12,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 
+
 /**
  * Sends the plan prompt to openai to retrieve the day by day subtopics and websites
  * @param {req.body.username} username of the user plan
