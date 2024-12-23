@@ -1,61 +1,64 @@
 'use client'
 
 import { ClientOnly, IconButton, Skeleton } from '@chakra-ui/react'
-import { ThemeProvider, useTheme } from 'next-themes'
+import { ThemeProvider } from 'next-themes'
 
 import * as React from 'react'
-import { LuMoon, LuSun } from 'react-icons/lu'
+import { LuSun } from 'react-icons/lu'
 
 export function ColorModeProvider(props) {
   return (
-    <ThemeProvider attribute='class' disableTransitionOnChange {...props} />
+    // Set default theme to 'light' and disable dynamic theme switching
+    <ThemeProvider attribute="class" disableTransitionOnChange defaultTheme="light" forcedTheme="light" {...props} />
   )
 }
 
 export function useColorMode() {
-  const { resolvedTheme, setTheme } = useTheme()
+  // Always return 'light' mode with no toggle functionality
+  const setColorMode = () => {
+    console.warn('Color mode is fixed to light mode.')
+  }
   const toggleColorMode = () => {
-    setTheme(resolvedTheme === 'light' ? 'dark' : 'light')
+    console.warn('Color mode is fixed to light mode.')
   }
   return {
-    colorMode: resolvedTheme,
-    setColorMode: setTheme,
+    colorMode: 'light',
+    setColorMode,
     toggleColorMode,
   }
 }
 
 export function useColorModeValue(light, dark) {
-  const { colorMode } = useColorMode()
-  return colorMode === 'light' ? light : dark
+  // Always return the 'light' value
+  return light
 }
 
 export function ColorModeIcon() {
-  const { colorMode } = useColorMode()
-  return colorMode === 'light' ? <LuSun /> : <LuMoon />
+  // Always return the light mode icon
+  return <LuSun />
 }
 
-export const ColorModeButton = React.forwardRef(
-  function ColorModeButton(props, ref) {
-    const { toggleColorMode } = useColorMode()
-    return (
-      <ClientOnly fallback={<Skeleton boxSize='8' />}>
-        <IconButton
-          onClick={toggleColorMode}
-          variant='ghost'
-          aria-label='Toggle color mode'
-          size='sm'
-          ref={ref}
-          {...props}
-          css={{
-            _icon: {
-              width: '5',
-              height: '5',
-            },
-          }}
-        >
-          <ColorModeIcon />
-        </IconButton>
-      </ClientOnly>
-    )
-  },
-)
+export const ColorModeButton = React.forwardRef(function ColorModeButton(props, ref) {
+  // Disable the button since toggling is unnecessary
+  return (
+    <ClientOnly fallback={<Skeleton boxSize="8" />}>
+      <IconButton
+        variant="ghost"
+        aria-label="Color mode is fixed to light"
+        size="sm"
+        ref={ref}
+        isDisabled
+        {...props}
+        css={{
+          _icon: {
+            width: '5',
+            height: '5',
+          },
+        }}
+      >
+        <ColorModeIcon />
+      </IconButton>
+    </ClientOnly>
+  )
+})
+  
